@@ -92,52 +92,35 @@ Camera* camPointer = nullptr;
 void buildChunks(Model* blockModel, World* world, bool& smoothLighting, int& skyLight, std::vector<Chunk*>& toBeUpdated) {
     ChunkBuilder cb(blockModel, world);
     bool building = false;
-    bool wasBuilding = false;
+
     std::cout << "BuildChunk Thread lives!" << std::endl;
 
     while (true) {
-        if (wasBuilding && !building) {
-            std::cout << "Finished building Chunks" << std::endl;
-            wasBuilding = building;
-        }
-        if (!toBeUpdated.empty()) {
-            building = true;
-            // Remove the chunk from the toBeUpdated list
-            std::unique_lock<std::mutex> crLock(chunkRadiusMutex);
-            Chunk* c = toBeUpdated.front();
-            toBeUpdated.erase(toBeUpdated.begin());
-            crLock.unlock();
-
-            /*
-            // Iterate over chunkMeshes to find and delete the matching chunk
-            for (auto it = chunkMeshes.begin(); it != chunkMeshes.end(); ++it) {
-                if (c == (*it)->chunk) {
-                    delete *it; // Delete the chunkMesh
-                    chunkMeshes.erase(it); // Safely remove it from the vector
-                    break;
-                }
-            }*/
-
-            // Build a new chunk mesh and add it to the chunkMeshes
-            std::unique_lock<std::mutex> mbLock(meshBuildQueueMutex);
-            meshBuildQueue.push_back(cb.buildChunk(c, smoothLighting, skyLight));
-            mbLock.unlock();
-
-            // Backwards iteration to remove chunkMeshes with missing chunks
-            std::unique_lock<std::mutex> cmLock(chunkMeshesMutex, std::try_to_lock);
-            if (cmLock.owns_lock()) {
-                for (int i = static_cast<int>(chunkMeshes.size()) - 1; i >= 0; --i) {
-                    Chunk* chunk = world->findChunk(chunkMeshes[i]->chunk->x, chunkMeshes[i]->chunk->z);
-                    if (!chunk) {
-                        delete chunkMeshes[i]; // Delete the chunkMesh
-                        chunkMeshes.erase(chunkMeshes.begin() + i); // Erase safely
-                    }
-                }
+        // Check if there are chunks to update
+        Chunk* c = nullptr;
+        {
+            std::unique_lock<std::mutex> lock(chunkRadiusMutex);
+            if (!toBeUpdated.empty()) {
+                c = toBeUpdated.front();
+                toBeUpdated.erase(toBeUpdated.begin());
             }
-            wasBuilding = building;
+        }
+
+        if (c) {
+            building = true;
+
+            // CPU-side mesh generation only
+            DummyMesh cpuMesh = cb.buildChunk(c, smoothLighting, skyLight);
+
+            // Push to queue for main thread to upload
+            {
+                std::unique_lock<std::mutex> lock(meshBuildQueueMutex);
+                meshBuildQueue.push_back(std::move(cpuMesh));
+            }
         } else {
             building = false;
         }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
@@ -306,25 +289,38 @@ int main(int argc, char *argv[]) {
     glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
     glViewport(0,0,windowWidth,windowHeight);
 
+    if (!window) {
+        std::cerr << "Failed to create GLFW window!" << std::endl;
+        return -1;
+    }
+    std::cout << "Window Initialized..."<< std::endl;
+
     // Creates Shader object using shaders default.vsh and .frag
     Shader blockShader("./shaders/default.vsh", "./shaders/minecraft.fsh");
     Shader normalShader("./shaders/default.vsh", "./shaders/normal.fsh");
     Shader defaultShader("./shaders/default.vsh", "./shaders/default.fsh");
     Shader skyShader("./shaders/sky.vsh", "./shaders/sky.fsh");
+    std::cout << "Shaders Initialized..."<< std::endl;
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    EnableOpenGLDebug();
+    //EnableOpenGLDebug();
+    //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+
+    std::cout << "GL Version: " << glGetString(GL_VERSION) << "\n";
+    std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n";
+    std::cout << "Renderer: " << glGetString(GL_RENDERER) << "\n";
+
 
     // Create a camera
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(20.392706f+0.5, 67.527435f+0.5, 90.234566f+0.5), glm::vec3(0.604827, -0.490525, 0.627354f)); // Glacier Screenshot
-    //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(-19.11, 66.5, -6.92), glm::vec3(0.0, 0.0, 0.9)); // 404 Screenshot
+    camPointer = new Camera(windowWidth, windowHeight, glm::vec3(-19.11, 66.5, -6.92), glm::vec3(0.0, 0.0, 0.9)); // 404 Screenshot
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(-31.80, 71.73, -55.69), glm::vec3(0.57, 0.05, 0.67)); // Nyareative Screenshot
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(-18.77, 70.60, -42.00), glm::vec3(0.13, -0.79, 0.36)); // Nyareative Chunk Error
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(2.30, 14.62, 235.69), glm::vec3(0.77, -0.32, -0.30)); // Publicbeta Underground Screenshot
-    camPointer = new Camera(windowWidth, windowHeight, glm::vec3(47.00, 67.62, 225.59), glm::vec3(0.46, -0.09, 0.76)); // Publicbeta Screenshot
+    //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(47.00, 67.62, 225.59), glm::vec3(0.46, -0.09, 0.76)); // Publicbeta Screenshot
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(59.76, 67.41, 251.58), glm::vec3(-0.63, 0.13, -0.61)); // Publicbeta Bg, Fov 50
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(0, 90, 0), glm::vec3(0.67, -0.57, -0.13)); // Testing
 
@@ -340,10 +336,12 @@ int main(int argc, char *argv[]) {
     initializeBlockLUTs();
 
     // Load Blockmodel
+    std::cout << "Loading models..."<< std::endl;
     Model* blockModel = new Model("./models/models.obj");
     Model* skyModel = new Model("./models/sky.obj");
 
     Sky sky(skyModel->meshes[0].get());
+    std::cout << "Models loaded!"<< std::endl;
 
     World* world = new World();
 
@@ -394,6 +392,8 @@ int main(int argc, char *argv[]) {
     //std::this_thread::sleep_for(std::chrono::milliseconds(25));
     //std::thread chunkBuildingThread2(buildChunks, std::ref(blockModel), world, std::ref(smoothLighting), std::ref(maxSkyLight), std::ref(toBeUpdated));
 
+    static int frame = 0;
+    std::cout << "Rendering starting!"<< std::endl;
     // Main while loop
     while (!glfwWindowShouldClose(window)) {
         // Update Options
@@ -463,19 +463,18 @@ int main(int argc, char *argv[]) {
         }
 
         // Re-enable Depth Test
-        std::unique_lock<std::mutex> mbLock(meshBuildQueueMutex, std::try_to_lock);
-        // FIXED: Fix chunks corrupting
-        // Turns out chunks corrupted due to non-triangulated meshes!!!
-        if (mbLock.owns_lock()) {
-            if (!meshBuildQueue.empty()) {
+        {
+            std::unique_lock<std::mutex> mbLock(meshBuildQueueMutex, std::try_to_lock);
+            if (mbLock.owns_lock() && !meshBuildQueue.empty()) {
                 DummyMesh mesh = meshBuildQueue.back();
                 std::vector<Mesh*> meshes;
-                if (!mesh.vertices.empty() && !mesh.indices.empty()) {
+
+                if (!mesh.vertices.empty() && !mesh.indices.empty())
                     meshes.push_back(new Mesh("world", mesh.vertices, mesh.indices, tex));
-                }
-                if (!mesh.waterVertices.empty() && !mesh.waterIndices.empty()) {
+
+                if (!mesh.waterVertices.empty() && !mesh.waterIndices.empty())
                     meshes.push_back(new Mesh("water", mesh.waterVertices, mesh.waterIndices, tex));
-                }
+
                 ChunkMesh* cm = new ChunkMesh(mesh.chunk, meshes);
                 chunkMeshes.push_back(cm);
                 meshBuildQueue.pop_back();

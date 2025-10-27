@@ -14,6 +14,13 @@ Mesh::Mesh(std::string pName, std::vector<Vertex>& vertices, std::vector<GLuint>
     Mesh::indices = indices;
     Mesh::textures = textures;
 
+    if (vertices.empty() || indices.empty()) {
+        std::cout << "Skipping OpenGL buffer setup for mesh '" << pName
+                  << "'. Vertices: " << vertices.size()
+                  << ", Indices: " << indices.size() << std::endl;
+        return;
+    }
+
     // Create Vertex Array Object and Bind it
     vao.Bind();
     vbo.Bind();
