@@ -11,7 +11,12 @@ find_package(glfw3 3.3 REQUIRED)
 add_library(glad src/src/glad.c)
 target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/src/include/)
 
-include_directories(src/include)
+include_directories(
+    src/include
+    src/include/stb
+    src/include/imgui
+    src/include/glad
+)
 add_compile_options(
   "-ggdb"
 )
