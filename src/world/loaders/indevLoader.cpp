@@ -28,7 +28,7 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
     levelBlocks = new Block[levelWidth * levelLength * levelHeight];
     size_t expectedSize = levelWidth * levelLength * levelHeight;
 
-    std::cout << "Reading infdev block data...\n";
+    std::cout << "Reading Indev block data...\n";
 	// Get Block Data
     auto blocks = std::dynamic_pointer_cast<ByteArrayNbtTag>(mapTag->Get("Blocks"));
     // Get Block ID
@@ -42,7 +42,7 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
         return;
     }
     
-    std::cout << "Reading infdev meta + lighting data...\n";
+    std::cout << "Reading Indev meta + lighting data...\n";
     // Get Block Sky Light
     auto data = std::dynamic_pointer_cast<ByteArrayNbtTag>(mapTag->Get("Data"));
     if (!data) {
