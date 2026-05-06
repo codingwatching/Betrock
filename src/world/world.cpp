@@ -136,18 +136,20 @@ void World::getChunksInRadius(int x, int z, int radius, std::vector<Chunk*>& new
                     containedChunks.push_back(c);
                     if (newChunk) {
                         std::unique_lock<std::mutex> lock(chunkRadiusMutex);
-                        newChunks.push_back(c);
 
-                        // Check neighboring chunks
-                        Chunk* neighbors[] = {findChunk(ix + cx, iz + cz - 1), findChunk(ix + cx, iz + cz + 1),
-                                              findChunk(ix + cx - 1, iz + cz), findChunk(ix + cx + 1, iz + cz)};
-                        
+                        // Don't queue a chunk that's already waiting to be built
+                        if (std::find(newChunks.begin(), newChunks.end(), c) == newChunks.end()) {
+                            newChunks.push_back(c);
+                        }
+
+                        // Re-queue neighbours only if they aren't already queued
+                        Chunk* neighbors[] = { findChunk(ix+cx, iz+cz-1), findChunk(ix+cx, iz+cz+1),
+                                                findChunk(ix+cx-1, iz+cz), findChunk(ix+cx+1, iz+cz) };
                         for (Chunk* neighbor : neighbors) {
                             if (neighbor && std::find(newChunks.begin(), newChunks.end(), neighbor) == newChunks.end()) {
                                 newChunks.push_back(neighbor);
                             }
                         }
-                        lock.unlock();
                     }
                 }
             }

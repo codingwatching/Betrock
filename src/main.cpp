@@ -90,6 +90,7 @@ std::mutex meshBuildQueueMutex;
 std::mutex chunkRadiusMutex;
 Camera* camPointer = nullptr;
 glm::vec3 lastWaterSortPosition;
+glm::vec3 lastWaterSortForward;
 
 void buildChunks(Model* blockModel, World* world, bool& smoothLighting, int& skyLight, std::vector<Chunk*>& toBeUpdated) {
     ChunkBuilder cb(blockModel, world);
@@ -389,7 +390,7 @@ int main(int argc, char *argv[]) {
     bool gravity = false;
     bool collision = false;
     bool renderChunks = true;
-    bool renderFog = true;
+    bool renderFog = false;
     bool optimalViewDistance = false;
     bool raycastToBlock = true;
     bool normals = false;
@@ -501,7 +502,15 @@ int main(int argc, char *argv[]) {
                     meshes.push_back(new Mesh("water", mesh.waterVertices, mesh.waterIndices, tex));
 
                 ChunkMesh* cm = new ChunkMesh(mesh.chunk, meshes);
-                chunkMeshes.push_back(cm);
+
+                auto existing = std::find_if(chunkMeshes.begin(), chunkMeshes.end(),
+                    [&](ChunkMesh* m) { return m->chunk == mesh.chunk; });
+                if (existing != chunkMeshes.end()) {
+                    delete *existing;
+                    *existing = cm;
+                } else {
+                    chunkMeshes.push_back(cm);
+                }
                 meshBuildQueue.pop_back();
             }
         }
@@ -509,29 +518,20 @@ int main(int argc, char *argv[]) {
         // Sort Chunks by Manhattan Distance
         // Maybe add  && checkIfChunkBoundaryCrossed(camPointer->Position, previousPosition)?
         if (waterSorting) {
-            if (glm::distance(camPointer->Position, lastWaterSortPosition) > 8.0) {
+            if (glm::distance(camPointer->Position, lastWaterSortPosition) > 4.0f ||
+                glm::dot(camPointer->Orientation, lastWaterSortForward) < 0.999f) {
                 std::unique_lock<std::mutex> cmLock(chunkMeshesMutex);
                 std::sort(chunkMeshes.begin(), chunkMeshes.end(),
-                    [&](const auto& a, const auto& b) {
-                        // Only compare if the second mesh is "water" for both chunks
-                        if (a->meshes.size() > 1 && a->meshes[1]->name == "water" &&
-                            b->meshes.size() > 1 && b->meshes[1]->name == "water") {
+                    [&](const ChunkMesh* a, const ChunkMesh* b) {
+                        glm::vec2 cam(camPointer->Position.x, camPointer->Position.z);
 
-                            // Calculate chunk center positions
-                            glm::vec2 aChunkPosition = glm::vec2(a->chunk->x * 16 + 8, a->chunk->z * 16 + 8);
-                            glm::vec2 bChunkPosition = glm::vec2(b->chunk->x * 16 + 8, b->chunk->z * 16 + 8);
-                            glm::vec2 cameraXZ = glm::vec2(camPointer->Position.x, camPointer->Position.z);
+                        auto dist = [&](const ChunkMesh* m) {
+                            return glm::distance(cam, glm::vec2(m->chunk->x * 16 + 8, m->chunk->z * 16 + 8));
+                        };
 
-                            // Calculate Manhattan distances from the camera
-                            float distA = std::abs(aChunkPosition.x - cameraXZ.x) + std::abs(aChunkPosition.y - cameraXZ.y);
-                            float distB = std::abs(bChunkPosition.x - cameraXZ.x) + std::abs(bChunkPosition.y - cameraXZ.y);
-
-                            // Primary sorting condition: Compare distances (larger distance comes first)
-                            if (std::abs(distA - distB) > 1e-4f) {  // Add epsilon tolerance to avoid precision issues
-                                return distA > distB;
-                            }
-                        }
-                        return false;
+                        // Always sort far-to-near so transparent chunks blend correctly.
+                        // Chunks without water will still render opaque geometry in correct order.
+                        return dist(a) > dist(b);
                     });
                 cmLock.unlock();
                 lastWaterSortPosition = camPointer->Position;
@@ -562,6 +562,22 @@ int main(int argc, char *argv[]) {
             ImGui::SameLine(0,0);
             if (ImGui::Button("Load") && worldName != "") {
                 std::string worldPath = std::string(buffer) + "/saves/" + std::string(worldName) + "/";
+                // Drain the build queue first so the worker thread doesn't touch freed chunks
+                {
+                    std::unique_lock<std::mutex> lock(meshBuildQueueMutex);
+                    meshBuildQueue.clear();
+                }
+                // Clear pending chunk builds
+                {
+                    std::unique_lock<std::mutex> lock(chunkRadiusMutex);
+                    toBeUpdated.clear();
+                }
+                // Free GPU meshes
+                {
+                    std::unique_lock<std::mutex> lock(chunkMeshesMutex);
+                    for (ChunkMesh* cm : chunkMeshes) delete cm;
+                    chunkMeshes.clear();
+                }
                 world->clearChunks();
                 world->LoadWorld(worldPath);
                 updateChunks(blockShader, sky, renderDistance, world, toBeUpdated, loadNether);

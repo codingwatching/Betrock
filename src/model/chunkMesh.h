@@ -15,11 +15,10 @@ class ChunkMesh {
                 //std::cout << "Created Chunk Mesh " << chunk->x << ", " << chunk-> z << std::endl;
             }
             ~ChunkMesh() {
-                /*for (Mesh* mesh : meshes) {
-                    delete mesh;  // Free memory for each Mesh object
-                }*/
+                for (Mesh* mesh : meshes) {
+                    delete mesh;
+                }
                 meshes.clear();
-                //std::cout << "Deleted Chunk Mesh " << chunk->x << ", " << chunk-> z << std::endl;
             }
             void Remesh();
             void Draw(Shader& shader, Camera& camera) {
