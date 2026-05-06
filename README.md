@@ -148,6 +148,8 @@ Please refer to the following video as to why: ["Why You Shouldn't Nest Your Cod
 
 ## Resources
 ### Minecraft Wiki
+- [Java Edition Indev level format](https://minecraft.wiki/w/Java_Edition_Indev_level_format)
+- [Java Edition Alpha level format](https://minecraft.wiki/w/Java_Edition_Alpha_level_format)
 - [Region file format](https://minecraft.wiki/w/Region_file_format)
 - [NBT format](https://minecraft.wiki/w/NBT_format)
 ### wiki.vg (Now part of the Minecraft Wiki)
