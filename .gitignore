@@ -36,3 +36,4 @@
 *.gz
 *.zip
 /.cache
+*.blend1
