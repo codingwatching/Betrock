@@ -264,7 +264,7 @@ int main(int argc, char *argv[]) {
     char buffer[size];
     strncpy(buffer, basePath.c_str(), size - 1);
     buffer[size - 1] = '\0';
-    char worldName[256] = "indev20100129";
+    char worldName[256] = "publicbeta";
     if (argc < 2) {
         std::cout << "No world name provided!" << std::endl;
         //return 1;
@@ -408,7 +408,7 @@ int main(int argc, char *argv[]) {
     int timeOfDay = 0;
     glm::vec3 previousPosition = camPointer->Position;
 
-    int renderDistance = 8;
+    int renderDistance = 32;
 
     float x = camPointer->Position.x;
     float z = camPointer->Position.z;
@@ -656,7 +656,7 @@ int main(int argc, char *argv[]) {
                         break;
                 }
                 ImGui::Text("%s", renderDistancePreset.c_str());
-                ImGui::SliderInt("Render Distance",&renderDistance, 1, 32);
+                ImGui::SliderInt("Render Distance",&renderDistance, 1, 64);
             
                 // Get list of chunks that're to be updated
                 if (manualChunkUpdateTrigger || ImGui::Button("Update Chunks") || (checkIfChunkBoundaryCrossed(camPointer->Position, previousPosition) && updateWhenMoving)) {
