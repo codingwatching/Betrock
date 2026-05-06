@@ -53,7 +53,7 @@ Chunk* World::findChunk(int x, int z) {
 
 Chunk* World::loadChunk(int x, int z, bool nether) {
     //std::cout << "Load Chunk at " << x/16 << ", " << z/16 << std::endl;
-    Chunk* c = rl->loadRegion(x,z, nether);
+    Chunk* c = rl->loadChunk(x,z, nether);
     addChunk(c);
     return c;
 }

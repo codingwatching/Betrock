@@ -1,4 +1,5 @@
 #include "regionLoader.h"
+#include "worldLoader.h"
 
 uint offset;
 uint sector;
@@ -70,7 +71,7 @@ uint8_t* RegionLoader::decompressChunk(uint chunkIndex, size_t length, uint8_t c
 }
 
 // Returns an array of Chunks
-Chunk* RegionLoader::decodeRegion(int chunkX, int chunkZ) {
+Chunk* RegionLoader::getChunk(int chunkX, int chunkZ) {
 	//for (uint chunkIndex = 0; chunkIndex < 32*32; chunkIndex++) {
 	uint chunkIndex = (chunkX&31) + (chunkZ&31)*32;
 	f.seekg(chunkIndex*4,std::ios::beg);
@@ -102,7 +103,7 @@ Chunk* RegionLoader::decodeRegion(int chunkX, int chunkZ) {
 
 	// Extract Block Data
 	if (lastX != chunkX && lastZ != chunkZ) {
-		chunkLevel = dynamic_cast<TAG_Compound*>(nbtLoader->loadNbt(nbtData, nbtLength)->getData(0));
+		chunkLevel = dynamic_cast<TAG_Compound*>(nbtLoader.loadNbt(nbtData, nbtLength)->getData(0));
 	}
 	free(nbtData);
 	if (!chunkLevel) {
@@ -169,13 +170,8 @@ Chunk* RegionLoader::decodeRegion(int chunkX, int chunkZ) {
 	return new Chunk(chunkX,chunkZ,blockData,blockSkyLightData,blockLightData,blockMetaData);
 }
 
-RegionLoader::RegionLoader(std::string pPath) {
-	RegionLoader::path = pPath;
-	RegionLoader::nbtLoader = new nbt();
-}
-
 // Get the Region data from the associated regionX and regionZ file
-Chunk* RegionLoader::loadRegion(int chunkX, int chunkZ, bool nether) {
+Chunk* RegionLoader::loadChunk(int chunkX, int chunkZ, bool nether) {
     int regionX = (int) std::floor(chunkX / 32.0f);
     int regionZ = (int) std::floor(chunkZ / 32.0f);
 
@@ -188,7 +184,7 @@ Chunk* RegionLoader::loadRegion(int chunkX, int chunkZ, bool nether) {
 	if (lastAccessedRegion != regionfile) {
 		// If f is already used, close it
 		if (f.is_open()) {
-			nbtLoader->freeNbt(chunkLevel);
+			nbtLoader.freeNbt(chunkLevel);
 			chunkLevel = nullptr;
 			f.close();
 		}
@@ -201,6 +197,5 @@ Chunk* RegionLoader::loadRegion(int chunkX, int chunkZ, bool nether) {
 		lastAccessedRegion = regionfile;
 	}
 	//std::cout << "Decoding " << regionfile << std::endl;
-	Chunk* chunk = decodeRegion(chunkX,chunkZ);
-	return chunk;
+	return getChunk(chunkX,chunkZ);
 }

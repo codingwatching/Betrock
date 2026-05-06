@@ -4,7 +4,7 @@
 #include "chunk.h"
 #include "block.h"
 #include <cmath>
-#include "regionLoader.h"
+#include "loaders/regionLoader.h"
 #include <unordered_set>
 #include <mutex>
 #include <unordered_map>

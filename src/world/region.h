@@ -1,6 +1,6 @@
 #pragma once
 #include "chunk.h"
-#include "regionLoader.h"
+#include "loaders/regionLoader.h"
 #include "region.h"
 #include "../compat.h"
 

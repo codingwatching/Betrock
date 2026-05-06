@@ -45,7 +45,9 @@ add_executable(
     src/render/sky.cpp
 
     src/world/world.cpp
-    src/world/regionLoader.cpp
+    src/world/loaders/regionLoader.cpp
+    src/world/loaders/alphaLoader.h
+    src/world/loaders/worldLoader.cpp
     src/world/region.cpp
     src/world/chunk.cpp
     src/world/blockProperties.cpp
