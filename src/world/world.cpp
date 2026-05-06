@@ -1,4 +1,7 @@
 #include "world.h"
+#include "loaders/alphaLoader.h"
+#include "loaders/regionLoader.h"
+#include <filesystem>
 
 World::World(const std::string& pName) {
     if (pName != "") {
@@ -15,9 +18,24 @@ void World::LoadWorld(const std::string& pName) {  // Use const reference
         delete wl;
         wl = nullptr;     // Good practice to null after delete
     }
+
+    WorldFormat wf = ALPHA_FORMAT_WORLD;
+    if (std::filesystem::exists(pName + "/region")) {
+        wf = MCREGION_FORMAT_WORLD;
+    }
     
     // Create new RegionLoader
-    wl = new RegionLoader(pName);
+    switch(wf) {
+        case MCREGION_FORMAT_WORLD:
+            wl = new RegionLoader(pName);
+            break;
+        case ALPHA_FORMAT_WORLD:
+            wl = new AlphaLoader(pName);
+            break;
+        default:
+            std::cerr << "Invalid world loader!\n";
+            break;
+    }
 }
 /*
 Region* World::findRegion(int x, int z) {

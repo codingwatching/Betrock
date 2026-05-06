@@ -43,7 +43,7 @@ add_executable(
 
     src/world/world.cpp
     src/world/loaders/regionLoader.cpp
-    src/world/loaders/alphaLoader.h
+    src/world/loaders/alphaLoader.cpp
     src/world/loaders/worldLoader.cpp
     src/world/region.cpp
     src/world/chunk.cpp

@@ -88,6 +88,7 @@ std::mutex chunkMeshesMutex;
 std::mutex meshBuildQueueMutex;
 std::mutex chunkRadiusMutex;
 Camera* camPointer = nullptr;
+glm::vec3 lastWaterSortPosition;
 
 void buildChunks(Model* blockModel, World* world, bool& smoothLighting, int& skyLight, std::vector<Chunk*>& toBeUpdated) {
     ChunkBuilder cb(blockModel, world);
@@ -243,7 +244,7 @@ int main(int argc, char *argv[]) {
         // If _getcwd returns NULL, print an error message
         std::cerr << "Error getting current working directory" << std::endl;
     }
-    char worldName[256] = "publicbeta";
+    char worldName[256] = "World1";
     if (argc < 2) {
         std::cout << "No world name provided!" << std::endl;
         //return 1;
@@ -484,30 +485,33 @@ int main(int argc, char *argv[]) {
         // Sort Chunks by Manhattan Distance
         // Maybe add  && checkIfChunkBoundaryCrossed(camPointer->Position, previousPosition)?
         if (waterSorting) {
-            std::unique_lock<std::mutex> cmLock(chunkMeshesMutex);
-            std::sort(chunkMeshes.begin(), chunkMeshes.end(),
-                [&](const auto& a, const auto& b) {
-                    // Only compare if the second mesh is "water" for both chunks
-                    if (a->meshes.size() > 1 && a->meshes[1]->name == "water" &&
-                        b->meshes.size() > 1 && b->meshes[1]->name == "water") {
+            if (glm::distance(camPointer->Position, lastWaterSortPosition) > 8.0) {
+                std::unique_lock<std::mutex> cmLock(chunkMeshesMutex);
+                std::sort(chunkMeshes.begin(), chunkMeshes.end(),
+                    [&](const auto& a, const auto& b) {
+                        // Only compare if the second mesh is "water" for both chunks
+                        if (a->meshes.size() > 1 && a->meshes[1]->name == "water" &&
+                            b->meshes.size() > 1 && b->meshes[1]->name == "water") {
 
-                        // Calculate chunk center positions
-                        glm::vec2 aChunkPosition = glm::vec2(a->chunk->x * 16 + 8, a->chunk->z * 16 + 8);
-                        glm::vec2 bChunkPosition = glm::vec2(b->chunk->x * 16 + 8, b->chunk->z * 16 + 8);
-                        glm::vec2 cameraXZ = glm::vec2(camPointer->Position.x, camPointer->Position.z);
+                            // Calculate chunk center positions
+                            glm::vec2 aChunkPosition = glm::vec2(a->chunk->x * 16 + 8, a->chunk->z * 16 + 8);
+                            glm::vec2 bChunkPosition = glm::vec2(b->chunk->x * 16 + 8, b->chunk->z * 16 + 8);
+                            glm::vec2 cameraXZ = glm::vec2(camPointer->Position.x, camPointer->Position.z);
 
-                        // Calculate Manhattan distances from the camera
-                        float distA = std::abs(aChunkPosition.x - cameraXZ.x) + std::abs(aChunkPosition.y - cameraXZ.y);
-                        float distB = std::abs(bChunkPosition.x - cameraXZ.x) + std::abs(bChunkPosition.y - cameraXZ.y);
+                            // Calculate Manhattan distances from the camera
+                            float distA = std::abs(aChunkPosition.x - cameraXZ.x) + std::abs(aChunkPosition.y - cameraXZ.y);
+                            float distB = std::abs(bChunkPosition.x - cameraXZ.x) + std::abs(bChunkPosition.y - cameraXZ.y);
 
-                        // Primary sorting condition: Compare distances (larger distance comes first)
-                        if (std::abs(distA - distB) > 1e-4f) {  // Add epsilon tolerance to avoid precision issues
-                            return distA > distB;
+                            // Primary sorting condition: Compare distances (larger distance comes first)
+                            if (std::abs(distA - distB) > 1e-4f) {  // Add epsilon tolerance to avoid precision issues
+                                return distA > distB;
+                            }
                         }
-                    }
-                    return false;
-                });
-            cmLock.unlock();
+                        return false;
+                    });
+                cmLock.unlock();
+                lastWaterSortPosition = camPointer->Position;
+            }
         }
         // Render all chunks
         // TODO: Only render chunks that're actually visible

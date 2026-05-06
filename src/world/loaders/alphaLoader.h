@@ -2,6 +2,9 @@
 #include "worldLoader.h"
 
 class AlphaLoader : public WorldLoader {
+    public:
+        AlphaLoader(std::string pPath) : WorldLoader(pPath) {}
+        Chunk* loadChunk(int x, int z, bool nether = false) override;
     private:
         const char* letters = "0123456789abcdefghijklmnopqrstuvwxyz";
         std::string encodeBase36(int num) {
