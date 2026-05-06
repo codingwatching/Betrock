@@ -23,7 +23,8 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
     levelHeight = std::dynamic_pointer_cast<ShortNbtTag>(mapTag->Get("Height"))->GetData();
     
     if (levelBlocks) {
-        free(levelBlocks);
+        delete[] levelBlocks;
+        levelBlocks = nullptr;
     }
     levelBlocks = new Block[levelWidth * levelLength * levelHeight];
     size_t expectedSize = levelWidth * levelLength * levelHeight;
@@ -55,13 +56,14 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
         return;
     }
 
-    for (short x = 0; x < levelWidth; x++) {
+    for (short y = 0; y < levelHeight; y++) {
         for (short z = 0; z < levelLength; z++) {
-            for (short y = 0; y < levelHeight; y++) {
-                Block* b = &levelBlocks[y + (z * levelHeight) + (x * levelHeight * levelLength)];
-                b->blockType = blockVec[y + (z * levelHeight) + (x * levelHeight * levelLength)];
-                b->metaData = (dataVec[y + (z * levelHeight) + (x * levelHeight * levelLength)] >> 4) & 0xF;
-                b->skyLightLevel = (dataVec[y + (z * levelHeight) + (x * levelHeight * levelLength)] & 0xF);
+            for (short x = 0; x < levelWidth; x++) {
+                size_t index = x + (z * levelWidth) + (y * levelWidth * levelLength);
+                Block* b = &levelBlocks[index];
+                b->blockType = blockVec[index];
+                b->metaData = (dataVec[index] >> 4) & 0xF;
+                b->skyLightLevel = (dataVec[index] & 0xF);
                 b->lightLevel = 0;
             }
         }
@@ -93,9 +95,9 @@ Chunk* IndevLoader::loadChunk(int cx, int cz, bool nether) {
                 if (y >= levelHeight) continue;
 
                 // Indev index
-                int indevIndex = y +
-                    (worldZ * levelHeight) +
-                    (worldX * levelHeight * levelLength);
+                int indevIndex = worldX +
+                    (worldZ * levelWidth) +
+                    (y * levelWidth * levelLength);
 
                 // Chunk index (Y fastest as well)
                 int chunkIndex = y +
@@ -110,6 +112,8 @@ Chunk* IndevLoader::loadChunk(int cx, int cz, bool nether) {
             }
         }
     }
+    uint8_t* blockLight = new uint8_t[CHUNK_W * CHUNK_H * CHUNK_D];
+    memset(blockLight, 0, CHUNK_W * CHUNK_H * CHUNK_D);
 
-    return new Chunk(cx, cz, blockData, skyLight, skyLight, blockMeta);
+    return new Chunk(cx, cz, blockData, skyLight, blockLight, blockMeta);
 }

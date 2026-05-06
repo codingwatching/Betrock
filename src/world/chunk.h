@@ -24,10 +24,22 @@ class Chunk {
                 }
                 blocks[i] = Block(pBlockData[i], skyLight, blockLight, metaData);
             }
-            delete[] pBlockData;
-            delete[] pSkyLightData;
-            delete[] pBlockLightData;
-            delete[] pMetaData;
+            if (pBlockData) {
+                delete[] pBlockData;
+                pBlockData = nullptr;
+            }
+            if (pSkyLightData) {
+                delete[] pSkyLightData;
+                pSkyLightData = nullptr;
+            }
+            if (pBlockLightData) {
+                delete[] pBlockLightData;
+                pBlockLightData = nullptr;
+            }
+            if (pMetaData) {
+                delete[] pMetaData;
+                pMetaData = nullptr;
+            }
             //std::cout << "Created Chunk at " << x << ", " << z << std::endl;
         }
 
