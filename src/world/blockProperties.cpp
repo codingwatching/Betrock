@@ -50,30 +50,37 @@ void initializeBlockLUTs() {
 }
 
 bool isTransparent(uint8_t blockType) {
+    if (blockType >= 96) return false;
     return transparentBlocksLUT[blockType];
 };
 
 bool isPartialBlock(uint8_t blockType) {
+    if (blockType >= 96) return false;
     return partialBlocksLUT[blockType];
 };
 
 bool isLightSource(uint8_t blockType) {
+    if (blockType >= 96) return false;
     return lightSourceBlocksLUT[blockType];
 };
 
 bool isFluid(uint8_t blockType) {
+    if (blockType >= 96) return false;
     return fluidBlocksLUT[blockType];
 }
 
 bool isBillboard(uint8_t blockType) {
+    if (blockType >= 96) return false;
     return billboardBlocksLUT[blockType];
 }
 
 bool isNonSolid(uint8_t blockType) {
+    if (blockType >= 96) return false;
     return nonSolidBlocksLUT[blockType];
 }
 
 bool isFull(uint8_t blockType) {
+    if (blockType >= 96) return true;
     return fullBlocksLUT[blockType];
 }
 
@@ -151,8 +158,8 @@ std::string getBlockName(uint8_t blockType) {
             return "Piston Head";
         case 35:
             return "White Wool";
-        //case 36:
-        //    return "Cobweb";
+        case 36:
+            return "Moving Block"; // Should never be seen
         case 37:
             return "Dandelion";
         case 38:
@@ -270,7 +277,7 @@ std::string getBlockName(uint8_t blockType) {
         case 94:
             return "Powered Redstone Repeater";
         case 95:
-            return "Stained Glass";
+            return "Locked Chest/Stained Glass";
         case 96:
             return "Trapdoor";
         default:

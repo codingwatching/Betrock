@@ -1,6 +1,14 @@
 # Betrock
-A C++ Application for exploring Minecraft Beta 1.7.3 Worlds,
+![C++23](https://img.shields.io/badge/Language-C%2B%2B20-5E96CF)
+![Issues](https://img.shields.io/github/issues/OfficialPixelBrush/Betrock)
+![Pull requests](https://img.shields.io/github/issues-pr/OfficialPixelBrush/Betrock)
+
+A C++ Application for exploring Old Minecraft Worlds,
 written to look as close to the real deal as I can manage.
+
+It supports the [Java Edition Alpha level format](https://minecraft.wiki/w/Java_Edition_Alpha_level_format), used from Infdev 20100327 up to Beta 1.2_02, and [Region file format](https://minecraft.wiki/w/Region_file_format), used from Beta 1.3 up to Release 1.1.
+
+While Release 1.1 Worlds can be loaded, Blocks that were added after Beta 1.7.3 are not supported.
 
 ## Screenshot
 ![Betrock Screenshot](images/image.png)
@@ -9,12 +17,30 @@ written to look as close to the real deal as I can manage.
 Install the required programs and libraries.
 
 ## Setup
+### Debian / Ubuntu / Linux Mint
 ```bash
 # Getting utilities
 sudo apt install git cmake ninja-build g++
 # Getting libraries
 sudo apt install libgl1-mesa-dev libglfw3-dev libzip-dev libdeflate-dev libglm-dev libstb-dev libfmt-dev
+```
+### RHEL / Fedora
+```bash
+# Getting utilities
+sudo dnf install git cmake ninja-build gcc-c++
+# Getting libraries
+sudo dnf install mesa-libGL-devel glfw-devel libzip-devel libdeflate-devel glm-devel fmt-devel
+```
+### Arch Linux
+```bash
+# Getting utilities
+sudo pacman -S git cmake ninja gcc
+# Getting libraries
+sudo pacman -S mesa glfw libzip libdeflate glm stb fmt
+```
 
+Clone the repository
+```bash
 # Setting up the repo
 git clone --recurse-submodules https://github.com/OfficialPixelBrush/Betrock.git
 cd Betrock
