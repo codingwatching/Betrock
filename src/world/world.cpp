@@ -78,7 +78,7 @@ Chunk* World::findChunk(int x, int z) {
 }
 
 Chunk* World::loadChunk(int x, int z, bool nether) {
-    //std::cout << "Load Chunk at " << x/16 << ", " << z/16 << std::endl;
+    //std::cout << "Load Chunk at " << x/CHUNK_WIDTH << ", " << z/CHUNK_WIDTH << std::endl;
     Chunk* c = wl->loadChunk(x,z, nether);
     addChunk(c);
     return c;
@@ -93,7 +93,7 @@ Chunk* World::getChunk(int x, int z) {
 }
 
 Block* World::getBlock(int x, int y, int z) {
-    Chunk* c = findChunk(floor(float(x)/16.0f),floor(float(z)/16.0f));
+    Chunk* c = findChunk(floor(float(x)/CHUNK_WIDTH),floor(float(z)/CHUNK_WIDTH));
     if (c) {
         return c->getBlock(x,y,z);
     }
@@ -123,8 +123,8 @@ size_t World::getNumberOfChunks() {
 }
 
 void World::getChunksInRadius(int x, int z, int radius, std::vector<Chunk*>& newChunks, std::mutex& chunkRadiusMutex, bool nether) {
-    int ix = int(float(x) / 16.0f);
-    int iz = int(float(z) / 16.0f);
+    int ix = int(float(x) / CHUNK_WIDTH);
+    int iz = int(float(z) / CHUNK_WIDTH);
 
     std::vector<Chunk*> containedChunks;
     std::cout << "Getting Chunks" << std::endl;

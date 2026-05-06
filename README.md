@@ -22,21 +22,21 @@ Install the required programs and libraries.
 # Getting utilities
 sudo apt install git cmake ninja-build g++
 # Getting libraries
-sudo apt install libgl1-mesa-dev libglfw3-dev libzip-dev libdeflate-dev libglm-dev libstb-dev libfmt-dev
+sudo apt install libgl1-mesa-dev libglfw3-dev libdeflate-dev libglm-dev libstb-dev libfmt-dev
 ```
 #### RHEL / Fedora
 ```bash
 # Getting utilities
 sudo dnf install git cmake ninja-build gcc-c++
 # Getting libraries
-sudo dnf install mesa-libGL-devel glfw-devel libzip-devel libdeflate-devel glm-devel fmt-devel
+sudo dnf install mesa-libGL-devel glfw-devel libdeflate-devel glm-devel fmt-devel
 ```
 #### Arch Linux
 ```bash
 # Getting utilities
 sudo pacman -S git cmake ninja gcc
 # Getting libraries
-sudo pacman -S mesa glfw libzip libdeflate glm stb fmt
+sudo pacman -S mesa glfw libdeflate glm stb fmt
 ```
 
 ### Clone the repository

@@ -2,14 +2,19 @@
 #include "../debug.h"
 #include "block.h"
 #include "../compat.h"
+
+#define CHUNK_HEIGHT 128
+#define CHUNK_WIDTH 16
+#define CHUNK_VOLUME CHUNK_WIDTH*CHUNK_HEIGHT*CHUNK_WIDTH
+
 class Chunk {
-    Block blocks [16*128*16];
+    Block blocks [CHUNK_VOLUME];
     public:
         int x,z;
         Chunk(int pX, int pZ, uint8_t pBlockData [], uint8_t pSkyLightData[], uint8_t pBlockLightData [], uint8_t pMetaData []) {
             x = pX;
             z = pZ;
-            for (uint i = 0; i < 16*128*16; i++) {
+            for (uint i = 0; i < CHUNK_VOLUME; i++) {
                 uint8_t blockLight = pBlockLightData[i/2];
                 uint8_t skyLight = pSkyLightData[i/2];
                 uint8_t metaData = pMetaData[i/2];
@@ -52,7 +57,7 @@ class Chunk {
         }
 
         Block* getBlock(int x, uint y, int z) {
-            if (y > 127) {
+            if (y > CHUNK_HEIGHT-1) {
                 return nullptr;
             }
 
@@ -76,14 +81,14 @@ class Chunk {
                 }
             }
 
-            x = x%16;
-            z = z%16;
+            x = x%CHUNK_WIDTH;
+            z = z%CHUNK_WIDTH;
             if (x < 0) {
-                x+=16;
+                x+=CHUNK_WIDTH;
             }
             if (z < 0) {
-                z+=16;
+                z+=CHUNK_WIDTH;
             }
-            return &blocks[y + z*128 + (x*128*16)];
+            return &blocks[y + z*CHUNK_HEIGHT + (x*CHUNK_HEIGHT*CHUNK_WIDTH)];
         }
 };

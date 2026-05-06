@@ -622,13 +622,13 @@ DummyMesh ChunkBuilder::buildChunk(Chunk* chunk, bool smoothLighting, uint8_t ma
     std::vector<Vertex> waterVertices;
     std::vector<GLuint> waterIndices;
 
-    int chunkX = chunk->x*16;
-    int chunkZ = chunk->z*16;
+    int chunkX = chunk->x*CHUNK_WIDTH;
+    int chunkZ = chunk->z*CHUNK_WIDTH;
 
     //std::cout << "Chunk" << " " << chunk->x << ", " << chunk->z << std::endl;
-    for (int x = chunkX; x < 16+chunkX; x++) {
-        for (int z = chunkZ; z < 16+chunkZ; z++) {
-            for (uint y = 0; y < 128; y++) {
+    for (int x = chunkX; x < CHUNK_WIDTH+chunkX; x++) {
+        for (int z = chunkZ; z < CHUNK_WIDTH+chunkZ; z++) {
+            for (uint y = 0; y < CHUNK_HEIGHT; y++) {
                 // Get next block to process
                 Block* b = world->getBlock(x,y,z);
                 // Check if the block is air

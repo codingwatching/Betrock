@@ -1,6 +1,7 @@
 #include "indevLoader.h"
 
 #include "nbt.h"
+#include <cstddef>
 #include <cstdlib>
 
 IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
@@ -17,10 +18,17 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
     if (!mapTag) {
         std::cerr << "Failed to read \"Map\" Tag\n";
         return;
+    } else {
+        auto wTag = mapTag->Get("Width");
+        if (!wTag) std::cerr << "No width tag!\n";
+        levelWidth = std::dynamic_pointer_cast<ShortNbtTag>(wTag)->GetData();
+        auto lTag = mapTag->Get("Length");
+        if (!lTag) std::cerr << "No length tag!\n";
+        levelLength = std::dynamic_pointer_cast<ShortNbtTag>(lTag)->GetData();
+        auto hTag = mapTag->Get("Height");
+        if (!hTag) std::cerr << "No height tag!\n";
+        levelHeight = std::dynamic_pointer_cast<ShortNbtTag>(hTag)->GetData();
     }
-    levelWidth = std::dynamic_pointer_cast<ShortNbtTag>(mapTag->Get("Width"))->GetData();
-    levelLength = std::dynamic_pointer_cast<ShortNbtTag>(mapTag->Get("Length"))->GetData();
-    levelHeight = std::dynamic_pointer_cast<ShortNbtTag>(mapTag->Get("Height"))->GetData();
     
     if (levelBlocks) {
         delete[] levelBlocks;
@@ -56,34 +64,37 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
         return;
     }
 
-    for (short y = 0; y < levelHeight; y++) {
+    std::cout << std::hex;
+    for (short x = 0; x < levelWidth; x++) {
         for (short z = 0; z < levelLength; z++) {
-            for (short x = 0; x < levelWidth; x++) {
+            for (short y = 0; y < levelHeight; y++) {
                 size_t index = x + (z * levelWidth) + (y * levelWidth * levelLength);
                 Block* b = &levelBlocks[index];
                 b->blockType = blockVec[index];
-                b->metaData = (dataVec[index] >> 4) & 0xF;
-                b->skyLightLevel = (dataVec[index] & 0xF);
-                b->lightLevel = 0;
+                uint8_t d = dataVec[index];
+                b->metaData      = (d >> 4) & 0x0F;
+                b->skyLightLevel = d & 0x0F;
             }
         }
     }
+    std::cout << std::dec;
     std::cout << "Loaded Indev world \"" << path + ".mclevel" << "\"\n";
 }
 
 Chunk* IndevLoader::loadChunk(int cx, int cz, bool nether) {
-    const int CHUNK_W = 16;
-    const int CHUNK_H = 128;
-    const int CHUNK_D = 16;
+    uint8_t* blockData = new uint8_t[CHUNK_VOLUME];
+    memset(blockData, 0, CHUNK_VOLUME);
+    uint8_t* blockMeta = new uint8_t[CHUNK_VOLUME];
+    memset(blockMeta, 0, CHUNK_VOLUME);
+    uint8_t* skyLight  = new uint8_t[CHUNK_VOLUME];
+    memset(skyLight, 0, CHUNK_VOLUME);
 
-    uint8_t* blockData = new uint8_t[CHUNK_W * CHUNK_H * CHUNK_D];
-    uint8_t* blockMeta = new uint8_t[CHUNK_W * CHUNK_H * CHUNK_D];
-    uint8_t* skyLight  = new uint8_t[CHUNK_W * CHUNK_H * CHUNK_D];
+    if (cx < 0 || cz < 0) return nullptr;
 
-    for (int lx = 0; lx < 16; lx++) {
-        for (int lz = 0; lz < 16; lz++) {
-            int worldX = cx * 16 + lx;
-            int worldZ = cz * 16 + lz;
+    for (int lx = 0; lx < CHUNK_WIDTH; lx++) {
+        for (int lz = 0; lz < CHUNK_WIDTH; lz++) {
+            int worldX = cx * CHUNK_WIDTH + lx;
+            int worldZ = cz * CHUNK_WIDTH + lz;
 
             // Skip if outside indev world
             if (worldX < 0 || worldX >= levelWidth ||
@@ -91,7 +102,7 @@ Chunk* IndevLoader::loadChunk(int cx, int cz, bool nether) {
                 continue;
             }
 
-            for (int y = 0; y < CHUNK_H; y++) {
+            for (int y = 0; y < CHUNK_HEIGHT; y++) {
                 if (y >= levelHeight) continue;
 
                 // Indev index
@@ -101,8 +112,8 @@ Chunk* IndevLoader::loadChunk(int cx, int cz, bool nether) {
 
                 // Chunk index (Y fastest as well)
                 int chunkIndex = y +
-                    (lz * CHUNK_H) +
-                    (lx * CHUNK_H * CHUNK_D);
+                    (lz * CHUNK_HEIGHT) +
+                    (lx * CHUNK_HEIGHT * CHUNK_WIDTH);
 
                 Block& src = levelBlocks[indevIndex];
 
@@ -112,8 +123,26 @@ Chunk* IndevLoader::loadChunk(int cx, int cz, bool nether) {
             }
         }
     }
-    uint8_t* blockLight = new uint8_t[CHUNK_W * CHUNK_H * CHUNK_D];
-    memset(blockLight, 0, CHUNK_W * CHUNK_H * CHUNK_D);
 
-    return new Chunk(cx, cz, blockData, skyLight, blockLight, blockMeta);
+    int nibbleSize = CHUNK_VOLUME / 2;
+    uint8_t* skyLightPacked  = new uint8_t[nibbleSize]();
+    uint8_t* metaPacked      = new uint8_t[nibbleSize]();
+
+    for (int i = 0; i < CHUNK_VOLUME; i++) {
+        int byte = i / 2;
+        if (i % 2) {
+            skyLightPacked[byte]  |= (skyLight[i]  & 0xF) << 4;
+            metaPacked[byte]      |= (blockMeta[i] & 0xF) << 4;
+        } else {
+            skyLightPacked[byte]  |= (skyLight[i]  & 0xF);
+            metaPacked[byte]      |= (blockMeta[i] & 0xF);
+        }
+    }
+
+    delete[] skyLight;
+    delete[] blockMeta;
+    uint8_t* blockLight = new uint8_t[(CHUNK_VOLUME)/2];
+    memset(blockLight, 0, (CHUNK_VOLUME)/2);
+
+    return new Chunk(cx, cz, blockData, skyLightPacked, blockLight, metaPacked);
 }

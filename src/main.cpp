@@ -1,4 +1,5 @@
 #include "main.h"
+#include "world/chunk.h"
 #include <filesystem>
 
 // TODO: Yeet these elsewhere
@@ -11,10 +12,10 @@ struct BlockHitResult {
 
 bool checkIfChunkBoundaryCrossed(glm::vec3 cameraPosition, glm::vec3 previousPosition) {
     // Current chunk coordinates
-    int x  = int(floor(cameraPosition.x   / 16.0f)+0.5);
-    int z  = int(floor(cameraPosition.z   / 16.0f)+0.5);
-    int px = int(floor(previousPosition.x / 16.0f)+0.5);
-    int pz = int(floor(previousPosition.z / 16.0f)+0.5);    
+    int x  = int(floor(cameraPosition.x   / CHUNK_WIDTH)+0.5);
+    int z  = int(floor(cameraPosition.z   / CHUNK_WIDTH)+0.5);
+    int px = int(floor(previousPosition.x / CHUNK_WIDTH)+0.5);
+    int pz = int(floor(previousPosition.z / CHUNK_WIDTH)+0.5);    
     return (px != x || pz != z) ;
 }
 
@@ -140,7 +141,7 @@ void getChunksInRenderDistance(int renderDistance, int x, int z, World* world, s
 }
 
 void updateChunks(Shader& shader, Sky& sky, int renderDistance, World* world, std::vector<Chunk*>& toBeUpdated, bool nether) {
-    sky.UpdateFog(shader, renderDistance*16);
+    sky.UpdateFog(shader, renderDistance*CHUNK_WIDTH);
     int x = int(camPointer->Position.x);
     int z = int(camPointer->Position.z);
     std::thread chunkRadiusThread(getChunksInRenderDistance, renderDistance, x, z, world, std::ref(toBeUpdated), nether);
@@ -263,7 +264,7 @@ int main(int argc, char *argv[]) {
     char buffer[size];
     strncpy(buffer, basePath.c_str(), size - 1);
     buffer[size - 1] = '\0';
-    char worldName[256] = "indev";
+    char worldName[256] = "indev20100129";
     if (argc < 2) {
         std::cout << "No world name provided!" << std::endl;
         //return 1;
@@ -390,12 +391,11 @@ int main(int argc, char *argv[]) {
     bool gravity = false;
     bool collision = false;
     bool renderChunks = true;
-    bool renderFog = false;
     bool optimalViewDistance = false;
     bool raycastToBlock = true;
     bool normals = false;
     bool fullBright = false;
-    bool fogEnabled = true;
+    bool fogEnabled = false;
     bool waterSorting = true;
     bool loadNether = false;
     std::vector<Chunk*> toBeUpdated;
@@ -448,7 +448,7 @@ int main(int argc, char *argv[]) {
         // World height is 128 blocks, thus our minimum view distance is 128 units,
         // after 9 chunks, the view distance needs to grow to account for the further away chunks
         if (optimalViewDistance) {
-            float maxViewDistance = std::max(128.0f,(float(renderDistance)*16.0f));
+            float maxViewDistance = std::max(float(CHUNK_HEIGHT),(float(renderDistance*CHUNK_WIDTH)));
             camPointer->UpdateMatrix(fieldOfView, 0.01f, maxViewDistance);
         } else {
             camPointer->UpdateMatrix(fieldOfView, 0.01f, 10000);
@@ -526,7 +526,7 @@ int main(int argc, char *argv[]) {
                         glm::vec2 cam(camPointer->Position.x, camPointer->Position.z);
 
                         auto dist = [&](const ChunkMesh* m) {
-                            return glm::distance(cam, glm::vec2(m->chunk->x * 16 + 8, m->chunk->z * 16 + 8));
+                            return glm::distance(cam, glm::vec2(m->chunk->x * CHUNK_WIDTH + CHUNK_WIDTH/2, m->chunk->z * CHUNK_WIDTH + CHUNK_WIDTH/2));
                         };
 
                         // Always sort far-to-near so transparent chunks blend correctly.
@@ -585,7 +585,7 @@ int main(int argc, char *argv[]) {
             ImGui::Checkbox("Nether", &loadNether);
             std::string msTime = fmt::format("Frame time: {:.2f}ms/{:.2f}fps", fpsTime, 1000/fpsTime);
             std::string camPos =  fmt::format("Position: {:.2f},{:.2f},{:.2f}", camPointer->Position.x, camPointer->Position.y,camPointer->Position.z);
-            std::string chunkPos =  "Chunk: " + std::to_string(int(std::floor(camPointer->Position.x/16))) + ", " + std::to_string(int(std::floor(camPointer->Position.z/16)));
+            std::string chunkPos =  "Chunk: " + std::to_string(int(std::floor(camPointer->Position.x/CHUNK_WIDTH))) + ", " + std::to_string(int(std::floor(camPointer->Position.z/CHUNK_WIDTH)));
             std::string camRot =  fmt::format("Orientation: {:.2f},{:.2f},{:.2f}",camPointer->Orientation.x,camPointer->Orientation.y,camPointer->Orientation.z);
             std::string facing =  "Facing: ";
             // Calculate the angle in radians based on the camera's orientation
