@@ -64,6 +64,8 @@ bool ChunkBuilder::isSurrounded(int x, int y, int z, uint8_t blockIndex) {
 
 glm::vec3 getBiomeBlockColor(unsigned char blockType, unsigned char blockMetaData, Vertex* vert) {
     glm::vec3 color = glm::vec3(0.57, 0.73, 0.34);
+    // Alpha grass
+    //glm::vec3 color = glm::vec3(0.79, 1.00, 0.49);
     // Biome Colored
     if ((blockType == GRASS && vert->normal.y > 0.0f) || (blockType == TALLGRASS)) {
         return color;

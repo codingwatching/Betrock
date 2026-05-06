@@ -137,7 +137,7 @@ Please refer to the following video as to why: ["Why You Shouldn't Nest Your Cod
 - [x] Import Beta 1.7.3 compliant Minecraft worlds
     - [x] Decode Chunk Offset
     - [x] Decompress Chunk Data
-        - [ ] Gzip
+        - [x] Gzip
         - [x] Zlib
     - [x] Decode NBT Data
     - [x] Turn NBT Data into C++ Objects
