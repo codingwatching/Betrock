@@ -6,17 +6,21 @@ WorldLoader::WorldLoader(std::string pPath) {
 
 
 Chunk* WorldLoader::extractNbtChunk(int chunkX, int chunkZ, uint8_t* nbtData, size_t nbtLength) {
+    std::string s(reinterpret_cast<char*>(nbtData), nbtLength);
+    std::istringstream stream(s);
 	// Extract Block Data
-	if (lastX != chunkX && lastZ != chunkZ) {
-		chunkLevel = dynamic_cast<TAG_Compound*>(nbtLoader.loadNbt(nbtData, nbtLength)->getData(0));
-	}
+	//if (lastX != chunkX && lastZ != chunkZ) {
+    auto readRoot = NbtRead(stream);
+	//}
 	free(nbtData);
-	if (!chunkLevel) {
+	if (!readRoot) {
 		std::cerr << "The entry is not of type TAG_Compound!" << std::endl;
 		//continue;
 		return nullptr;
 	}
+    std::cout << *readRoot;
 
+    /*
 	// Get Block Data
 	int8_t* blockData;
 	int8_t* blockSkyLightData;
@@ -73,4 +77,6 @@ Chunk* WorldLoader::extractNbtChunk(int chunkX, int chunkZ, uint8_t* nbtData, si
 		return nullptr;
 	}
 	return new Chunk(chunkX,chunkZ,blockData,blockSkyLightData,blockLightData,blockMetaData);
+        */
+    return nullptr;
 }

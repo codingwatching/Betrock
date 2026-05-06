@@ -1,5 +1,6 @@
 #pragma once
 #include "worldLoader.h"
+#include <math.h>
 
 class RegionLoader : public WorldLoader {
     public:

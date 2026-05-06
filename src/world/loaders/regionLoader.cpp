@@ -117,8 +117,6 @@ Chunk* RegionLoader::loadChunk(int chunkX, int chunkZ, bool nether) {
 	if (lastAccessedRegion != regionfile) {
 		// If f is already used, close it
 		if (f.is_open()) {
-			nbtLoader.freeNbt(chunkLevel);
-			chunkLevel = nullptr;
 			f.close();
 		}
 

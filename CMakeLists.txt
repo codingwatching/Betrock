@@ -32,9 +32,6 @@ add_executable(
     src/model/chunkBuilder.cpp
     src/model/model.cpp
 
-    src/nbt/nbt.cpp
-    src/nbt/nbttag.cpp
-
     src/render/shader.cpp
     src/render/vao.cpp
     src/render/vbo.cpp

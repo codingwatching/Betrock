@@ -1,7 +1,8 @@
 // Generic world loader
 #pragma once
 #include "../global.h"
-#include "../nbt/nbt.h"
+#define NBT_IMPLEMENTATION
+#include "nbt.h"
 #include "../helper.h"
 #include <cstddef>
 #include <fstream>
@@ -23,8 +24,6 @@ class WorldLoader {
         uint8_t* decompressChunk(uint chunkIndex, size_t length, uint8_t compressionScheme, size_t* nbtLength);
         virtual Chunk* getChunk(int x, int z) { return nullptr; };
     protected:
-	    nbt nbtLoader;
-        TAG_Compound* chunkLevel = nullptr;
         std::string path = "";
         Chunk* extractNbtChunk(int chunkX, int chunkZ, uint8_t* nbtData, size_t nbtLength);
 };
