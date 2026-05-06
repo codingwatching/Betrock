@@ -32,9 +32,6 @@ add_executable(
     src/model/chunkBuilder.cpp
     src/model/model.cpp
 
-    src/nbt/nbt.cpp
-    src/nbt/nbttag.cpp
-
     src/render/shader.cpp
     src/render/vao.cpp
     src/render/vbo.cpp
@@ -46,7 +43,7 @@ add_executable(
 
     src/world/world.cpp
     src/world/loaders/regionLoader.cpp
-    src/world/loaders/alphaLoader.h
+    src/world/loaders/alphaLoader.cpp
     src/world/loaders/worldLoader.cpp
     src/world/region.cpp
     src/world/chunk.cpp

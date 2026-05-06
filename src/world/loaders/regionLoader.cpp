@@ -21,55 +21,6 @@ std::string RegionLoader::compressionSchemeString(uint cs) {
 	return "Unsupported";
 }
 
-uint8_t* RegionLoader::decompressChunk(size_t length, uint8_t compressionScheme, size_t* nbtLength) {
-	// Read Compressed Data from Region File
-	char* compressedData = new char[length];
-	f.read(reinterpret_cast<char*>(compressedData), length);
-	// Issue was caused by too small decompressed size guess
-	size_t decompressedSize = 1000000;
-	
-	// Prepare array for Decompressed Data
-    uint8_t* decompressedData = (uint8_t*)malloc(decompressedSize);
-    if (!decompressedData) {
-        fprintf(stderr, "Failed to allocate decompressed buffer\n");
-        return NULL;
-    }
-
-	// Create Decompressor
-	struct libdeflate_decompressor *libd;
-	libd = libdeflate_alloc_decompressor();
-	if (libd == NULL) {
-		std::cerr << "Could not allocate decompressor!" << std::endl;
-		return NULL;
-	}
-	// Decompress Data
-	int result;
-	switch (compressionScheme) {
-		//case 1: // TODO: GZip
-			// Decompress Data
-		//	break;
-		case 2: // ZLib
-			result = libdeflate_zlib_decompress(libd, compressedData, length, decompressedData, 100000 , &decompressedSize);
-			// Decompress Data
-			if (result) {
-				std::cerr << "LibDeflate Error #" << std::to_string(result) << std::endl;
-				return NULL;
-			}
-			//std::cout << "Deflated Successfully!" << std::endl;
-			break;
-		default:
-			std::cerr << "Unknown or Unimplemented compression scheme #" << std::to_string(compressionScheme) <<"!" << std::endl;
-			return NULL;
-	}
-	// Deallocate Decompressor
-	delete [] compressedData;
-	libdeflate_free_decompressor(libd);
-
-	// Return NBT Data
-	*nbtLength = decompressedSize;
-	return decompressedData;
-}
-
 // Returns an array of Chunks
 Chunk* RegionLoader::getChunk(int chunkX, int chunkZ) {
 	//for (uint chunkIndex = 0; chunkIndex < 32*32; chunkIndex++) {
@@ -117,8 +68,6 @@ Chunk* RegionLoader::loadChunk(int chunkX, int chunkZ, bool nether) {
 	if (lastAccessedRegion != regionfile) {
 		// If f is already used, close it
 		if (f.is_open()) {
-			nbtLoader.freeNbt(chunkLevel);
-			chunkLevel = nullptr;
 			f.close();
 		}
 

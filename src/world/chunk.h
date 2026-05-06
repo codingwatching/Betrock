@@ -6,7 +6,7 @@ class Chunk {
     Block blocks [16*128*16];
     public:
         int x,z;
-        Chunk(int pX, int pZ, int8_t pBlockData [], int8_t pSkyLightData[], int8_t pBlockLightData [], int8_t pMetaData []) {
+        Chunk(int pX, int pZ, uint8_t pBlockData [], uint8_t pSkyLightData[], uint8_t pBlockLightData [], uint8_t pMetaData []) {
             x = pX;
             z = pZ;
             for (uint i = 0; i < 16*128*16; i++) {
@@ -24,6 +24,10 @@ class Chunk {
                 }
                 blocks[i] = Block(pBlockData[i], skyLight, blockLight, metaData);
             }
+            delete[] pBlockData;
+            delete[] pSkyLightData;
+            delete[] pBlockLightData;
+            delete[] pMetaData;
             //std::cout << "Created Chunk at " << x << ", " << z << std::endl;
         }
 

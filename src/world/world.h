@@ -11,6 +11,11 @@
 #include <unordered_map>
 #include <shared_mutex>
 
+enum WorldFormat {
+    MCREGION_FORMAT_WORLD = 0,
+    ALPHA_FORMAT_WORLD = 1
+};
+
 // Hash function for std::pair<int, int>
 struct pair_hash {
     template <class T1, class T2>
