@@ -1,5 +1,6 @@
 #include "world.h"
 #include "loaders/alphaLoader.h"
+#include "loaders/indevLoader.h"
 #include "loaders/regionLoader.h"
 #include <filesystem>
 
@@ -23,6 +24,10 @@ void World::LoadWorld(const std::string& pName) {  // Use const reference
     if (std::filesystem::exists(pName + "/region")) {
         wf = MCREGION_FORMAT_WORLD;
     }
+    std::string levelFile = pName.substr(0, pName.size() - 1);
+    if (std::filesystem::exists(levelFile + ".mclevel")) {
+        wf = INDEV_FORMAT_WORLD;
+    }
     
     // Create new RegionLoader
     switch(wf) {
@@ -31,6 +36,9 @@ void World::LoadWorld(const std::string& pName) {  // Use const reference
             break;
         case ALPHA_FORMAT_WORLD:
             wl = new AlphaLoader(pName);
+            break;
+        case INDEV_FORMAT_WORLD:
+            wl = new IndevLoader(levelFile);
             break;
         default:
             std::cerr << "Invalid world loader!\n";

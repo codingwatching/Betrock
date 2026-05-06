@@ -263,7 +263,7 @@ int main(int argc, char *argv[]) {
     char buffer[size];
     strncpy(buffer, basePath.c_str(), size - 1);
     buffer[size - 1] = '\0';
-    char worldName[256] = "publicbeta";
+    char worldName[256] = "indev";
     if (argc < 2) {
         std::cout << "No world name provided!" << std::endl;
         //return 1;

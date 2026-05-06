@@ -46,7 +46,6 @@ Mesh::~Mesh() {
     vertices.clear();
     indices.clear();
     textures.clear();
-    std::cout << "Deleted " << name << " Mesh " << this << std::endl;
 }
 
 void Mesh::Draw(
@@ -57,7 +56,6 @@ void Mesh::Draw(
     glm::quat pRotation,
     glm::vec3 pScale
 ) {
-    //std::cout << this << " (" << Mesh::name << ") is getting drawn" << std::endl;
 	// Bind shader to be able to access uniforms
     shader.Activate();
     vao.Bind();

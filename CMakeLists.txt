@@ -45,6 +45,7 @@ add_executable(
 
     src/world/world.cpp
     src/world/loaders/regionLoader.cpp
+    src/world/loaders/indevLoader.cpp
     src/world/loaders/alphaLoader.cpp
     src/world/loaders/worldLoader.cpp
     src/world/region.cpp

@@ -13,7 +13,8 @@
 
 enum WorldFormat {
     MCREGION_FORMAT_WORLD = 0,
-    ALPHA_FORMAT_WORLD = 1
+    ALPHA_FORMAT_WORLD = 1,
+    INDEV_FORMAT_WORLD = 2
 };
 
 // Hash function for std::pair<int, int>
