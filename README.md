@@ -59,27 +59,15 @@ cd build
 ```
 Tested on Linux Mint 22.1, Ubuntu 20.04 and WSL 2.4.10.0  (Debian 12)
 
+### (Optional) Packing as AppImage
+```bash
+chmod +x ./build_appimage.sh
+./build_appimage.sh
+```
+
 ### (Optional) Packing as tar.gz
 ```bash
 cpack --config build/CPackConfig.cmake -G TGZ
-```
-
-### (Optional) Packing as AppImage
-**Note**: The AppImage still requires all the folders inside `src/external/` else it will not run.
-```bash
-wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-chmod +x linuxdeploy-x86_64.AppImage
-./linuxdeploy-x86_64.AppImage --appdir AppDir \
-    --executable build/Betrock \
-    --desktop-file Betrock.desktop \
-    --icon-file icon.png \
-    --output appimage
-mv Betrock-x86_64.AppImage ./src/external/
-cd ./src/external
-zip -r Betrock_AppImage.zip *
-rm *.AppImage
-mv Betrock_AppImage.zip ../../
-cd ../../
 ```
 
 ## Note for adding blocks

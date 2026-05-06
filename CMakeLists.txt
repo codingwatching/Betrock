@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16.0)
 cmake_policy(SET CMP0072 NEW)
-set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(Betrock VERSION 0.4.2)
 
@@ -17,12 +17,14 @@ include_directories(
     src/include/imgui
     src/include/glad
 )
-add_compile_options(
-  "-ggdb"
-)
 
+# Debug info in all builds; strip for release via CMAKE_BUILD_TYPE=Release
+add_compile_options("-ggdb")
+
+# Copy runtime assets next to the binary during builds so dev runs work
+# (the AppImage build copies them to the proper install tree instead)
 file(COPY "${CMAKE_SOURCE_DIR}/src/external/"
-DESTINATION "${CMAKE_BINARY_DIR}")
+     DESTINATION "${CMAKE_BINARY_DIR}")
 
 # Configure the version header file
 configure_file(${CMAKE_SOURCE_DIR}/src/version.h.in ${CMAKE_SOURCE_DIR}/src/version.h)
@@ -48,7 +50,7 @@ add_executable(
     src/world/region.cpp
     src/world/chunk.cpp
     src/world/blockProperties.cpp
-    
+
     src/helper.cpp
     src/debug.cpp
     src/main.cpp
@@ -62,8 +64,6 @@ add_executable(
     src/include/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-set(CMAKE_SYSTEM_NAME Linux)
-
 # TODO: Get Windows Target working
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
@@ -76,43 +76,54 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         gdi32
         opengl32
         deflate
-	    fmt::fmt
+        fmt::fmt
     )
 else()
-    # Apply AddressSanitizer to all build types
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
-    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
+    # AddressSanitizer is useful for development but must NOT be included in
+    # AppImage / release builds – libasan is not portable and the AppImage
+    # won't run on systems where the exact libasan version is absent.
+    # Enable it explicitly with -DUSE_ASAN=ON if you want it.
+    option(USE_ASAN "Build with AddressSanitizer" OFF)
+    if(USE_ASAN)
+        message(STATUS "AddressSanitizer enabled")
+        target_compile_options(Betrock PRIVATE -fsanitize=address -g)
+        target_link_options(Betrock PRIVATE -fsanitize=address)
+    endif()
+
     target_link_libraries(
         Betrock
         glad
         glfw
         OpenGL::GL
         deflate
-	    fmt::fmt
+        fmt::fmt
         ${CMAKE_DL_LIBS}
     )
 endif()
 
-include(CPack)
+# ── Install layout ────────────────────────────────────────────────────────────
+# The install tree mirrors what linuxdeploy expects inside an AppDir:
+#
+#   usr/bin/Betrock
+#   usr/share/Betrock/shaders/
+#   usr/share/Betrock/textures/
+#   usr/share/Betrock/models/
+#   usr/share/Betrock/saves/
+#   usr/share/applications/Betrock.desktop
+#   usr/share/icons/hicolor/256x256/apps/Betrock.png
+#
+# The executable resolves $APPDIR/usr/share/Betrock at runtime when running
+# as an AppImage (see main.cpp basePath logic).
 
-# Set up CPack for AppImage
-set(CPACK_PACKAGE_NAME "Betrock")
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Betrock - Minecraft Beta 1.7.3 World Explorer")
-set(CPACK_PACKAGE_VENDOR "Torben J. Virtmann")
-set(CPACK_PACKAGE_CONTACT "letsplaytvirtmann@gmail.com")
-set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
-
-# AppImage specific settings
-set(CPACK_GENERATOR "AppImage")
-set(CPACK_APPIMAGE_FILE_ASSOCIATIONS "*.betrock")
-set(CPACK_PACKAGE_EXECUTABLES "Betrock;Betrock")
-
-# Ensure dependencies are bundled
-set(CPACK_APPIMAGE_USE_SYSTEM_LIBS FALSE)
-
-# Install the Betrock executable
 install(TARGETS Betrock DESTINATION bin)
 
-# Install additional resources
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/" DESTINATION bin)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/shaders"  DESTINATION share/Betrock)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/textures" DESTINATION share/Betrock)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/models"   DESTINATION share/Betrock)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/saves"    DESTINATION share/Betrock)
+
+install(FILES "${CMAKE_SOURCE_DIR}/Betrock.desktop"
+        DESTINATION share/applications)
+install(FILES "${CMAKE_SOURCE_DIR}/icon.png"
+        DESTINATION share/icons/hicolor/256x256/apps
+        RENAME Betrock.png)

@@ -1,4 +1,5 @@
 #include "main.h"
+#include <filesystem>
 
 // TODO: Yeet these elsewhere
 struct BlockHitResult {
@@ -230,20 +231,37 @@ void EnableOpenGLDebug()
 
 // Targeting OpenGL 3.3
 int main(int argc, char *argv[]) {
-    // Define a buffer 
-    const size_t size = 1024; 
-    // Allocate a character array to store the directory path
-    char buffer[size];        
-    
-    // Call _getcwd to get the current working directory and store it in buffer
-    if (getcwd(buffer, size) != NULL) {
-        // print the current working directory
-        std::cout << "Current working directory: " << buffer << std::endl;
-    } 
-    else {
-        // If _getcwd returns NULL, print an error message
-        std::cerr << "Error getting current working directory" << std::endl;
+    // Determine the base data directory.
+    // When running as an AppImage, $APPDIR points to the mounted image root and
+    // our data was installed to $APPDIR/usr/share/Betrock.  Outside an AppImage
+    // (normal build / development) we fall back to the directory that contains
+    // the executable so that "cmake --build && ./Betrock" keeps working.
+    std::string basePath;
+    const char* appDir = getenv("APPDIR");
+    if (appDir != nullptr && appDir[0] != '\0') {
+        basePath = std::string(appDir) + "/usr/share/Betrock";
+    } else {
+        // Use the real path of argv[0] so the app can be launched from any
+        // working directory (e.g. double-clicking in a file manager).
+        std::filesystem::path exePath;
+        try {
+            exePath = std::filesystem::canonical("/proc/self/exe").parent_path();
+        } catch (...) {
+            // Fallback: use the directory next to argv[0]
+            exePath = std::filesystem::path(argv[0]).parent_path();
+        }
+        // CMake copies src/external/ next to the binary during build
+        basePath = exePath.string();
     }
+    std::cout << "Base data directory: " << basePath << std::endl;
+    Betrock::basePath() = basePath;  // make available to all subsystems
+
+    // Keep 'buffer' as a plain char array so existing code that uses it for
+    // the world path (std::string(buffer) + "/saves/...") continues to work.
+    const size_t size = 1024;
+    char buffer[size];
+    strncpy(buffer, basePath.c_str(), size - 1);
+    buffer[size - 1] = '\0';
     char worldName[256] = "publicbeta";
     if (argc < 2) {
         std::cout << "No world name provided!" << std::endl;
@@ -297,10 +315,15 @@ int main(int argc, char *argv[]) {
     std::cout << "Window Initialized..."<< std::endl;
 
     // Creates Shader object using shaders default.vsh and .frag
-    Shader blockShader("./shaders/default.vsh", "./shaders/minecraft.fsh");
-    Shader normalShader("./shaders/default.vsh", "./shaders/normal.fsh");
-    Shader defaultShader("./shaders/default.vsh", "./shaders/default.fsh");
-    Shader skyShader("./shaders/sky.vsh", "./shaders/sky.fsh");
+    // Paths are resolved relative to basePath so the app works from any CWD,
+    // including when launched as an AppImage.
+    auto shaderPath = [&](const char* name) -> std::string {
+        return basePath + "/shaders/" + name;
+    };
+    Shader blockShader(shaderPath("default.vsh").c_str(), shaderPath("minecraft.fsh").c_str());
+    Shader normalShader(shaderPath("default.vsh").c_str(), shaderPath("normal.fsh").c_str());
+    Shader defaultShader(shaderPath("default.vsh").c_str(), shaderPath("default.fsh").c_str());
+    Shader skyShader(shaderPath("sky.vsh").c_str(), shaderPath("sky.fsh").c_str());
     std::cout << "Shaders Initialized..."<< std::endl;
 
     glEnable(GL_DEPTH_TEST);
@@ -339,8 +362,8 @@ int main(int argc, char *argv[]) {
 
     // Load Blockmodel
     std::cout << "Loading models..."<< std::endl;
-    Model* blockModel = new Model("./models/models.obj");
-    Model* skyModel = new Model("./models/sky.obj");
+    Model* blockModel = new Model((basePath + "/models/models.obj").c_str());
+    Model* skyModel = new Model((basePath + "/models/sky.obj").c_str());
 
     Sky sky(skyModel->meshes[0].get());
     std::cout << "Models loaded!"<< std::endl;

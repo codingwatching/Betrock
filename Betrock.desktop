@@ -1,10 +1,9 @@
 [Desktop Entry]
 Version=1.0
-Name=Betrock
-Exec=Betrock
-Terminal=false
-Icon=icon
 Type=Application
+Name=Betrock
+Comment=Minecraft Beta 1.7.3 World Explorer
+Exec=Betrock %u
+Icon=Betrock
+Terminal=false
 Categories=Game;
-X-AppImage-Integrate=false
-Name[en_US]=Betrock.desktop

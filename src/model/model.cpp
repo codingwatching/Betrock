@@ -1,3 +1,4 @@
+#include "../global.h"
 #include "model.h"
 
 Model::Model(const char* file) {
@@ -171,6 +172,6 @@ void Model::getMeshData() {
 
 std::vector<Texture> Model::getTextures() {
     std::vector<Texture> textures;
-    textures.push_back(Texture("./textures/terrain.png", "diffuse", 0));
+    textures.push_back(Texture((Betrock::basePath() + "/textures/terrain.png").c_str(), "diffuse", 0));
     return textures;
 }
