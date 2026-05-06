@@ -1,5 +1,6 @@
 #pragma once
 #include "worldLoader.h"
+#include <cstddef>
 
 class IndevLoader : public WorldLoader {
     public:
@@ -7,5 +8,5 @@ class IndevLoader : public WorldLoader {
         Chunk* loadChunk(int x, int z, bool nether = false) override;
     private:
         short levelWidth, levelLength, levelHeight;
-        Block* levelBlocks;
+        Block* levelBlocks = nullptr;
 };

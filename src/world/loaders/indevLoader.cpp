@@ -26,6 +26,7 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
         free(levelBlocks);
     }
     levelBlocks = new Block[levelWidth * levelLength * levelHeight];
+    size_t expectedSize = levelWidth * levelLength * levelHeight;
 
     std::cout << "Reading infdev block data...\n";
 	// Get Block Data
@@ -36,6 +37,10 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
         return;
     }
     const auto& blockVec = blocks->GetData();
+    if (blockVec.size() < expectedSize) {
+        std::cerr << "Block array too small! (" << blockVec.size() << "/" << expectedSize << ")\n";
+        return;
+    }
     
     std::cout << "Reading infdev meta + lighting data...\n";
     // Get Block Sky Light
@@ -45,6 +50,10 @@ IndevLoader::IndevLoader(std::string pPath) : WorldLoader(pPath) {
         return;
     }
     const auto& dataVec = data->GetData();
+    if (dataVec.size() < expectedSize) {
+        std::cerr << "Data array too small! (" << dataVec.size() << "/" << expectedSize << ")\n";
+        return;
+    }
 
     for (short x = 0; x < levelWidth; x++) {
         for (short z = 0; z < levelLength; z++) {
