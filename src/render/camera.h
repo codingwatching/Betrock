@@ -1,52 +1,65 @@
 #pragma once
-#define GLM_ENABLE_EXPERIMENTAL
-#include "../include/glad/glad.h"
+
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#include "../compat.h"
 
 #include "shader.h"
 
-class Camera {
-    public:
-        // Used to keep track if one is already clicked into the application
-        bool firstClick = true;
-        // Used to keep track of Camera Position, Orientation and Up Vector
-        glm::vec3 Position;
-        glm::vec3 Velocity = glm::vec3(0.0f,0.0f,0.0f);
-        glm::vec3 Drag = glm::vec3(0.09f,0.02f,0.09f);
-        glm::vec3 Orientation;
-        glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::mat4 cameraMatrix = glm::mat4(1.0f);
+class Camera
+{
+public:
+    // Transform
+    glm::vec3 Position    = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 Up          = glm::vec3(0.0f, 1.0f,  0.0f);
+    glm::vec3 Velocity    = glm::vec3(0.0f);
 
-        // Camera size
-        int width, height;
+    // Camera settings
+    float sensitivity = 100.0f;
+    float speed       = kDefaultSpeed;
 
-        float FOVdeg;
-        float nearPlane;
-        float farPlane;
+    Camera(int width, int height, glm::vec3 position, glm::vec3 orientation);
 
-        // Movement Settings
-        float speed = 0.01;
-        bool speedModified = false;
-        double delta = 1.0f;
-        float sensitivity = 150.0f;
+    void      UpdateMatrix(float fovDeg, float nearPlane, float farPlane);
+    void      UpdateResolution(int width, int height);
+    void      SetDelta(double delta);
+    void      UploadMatrix(Shader& shader, const char* uniform) const;
+    void      ProcessInput(GLFWwindow* window);
 
-        Camera(int pWidth, int pHeight, glm::vec3 pPosition, glm::vec3 pOrientation = glm::vec3(0.0f, 0.0f, -1.0f));
+    glm::mat4 GetProjectionMatrix() const;
+    glm::mat4 GetViewMatrix() const;
 
-        // Used to define projection Matrix
-        void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
-        glm::mat4 GetProjectionMatrix();
-        void updateResolution(int pWidth, int pHeight);
-        void Matrix(Shader& shader, const char* uniform);
+private:
+    // Constants
+    static constexpr float kDefaultSpeed = 0.1f;
+    static constexpr float kDragFactor   = 1.1f;
 
-        // Used to apply movement inputs to Camera
-        void Inputs(GLFWwindow* window);
-        void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-        void setDelta(double delta);
-        glm::mat4 GetViewMatrix();
+    // Viewport
+    int width  = 0;
+    int height = 0;
+
+    // Projection
+    float FOVdeg    = 45.0f;
+    float nearPlane = 0.1f;
+    float farPlane  = 100.0f;
+
+    // State
+    glm::mat4 cameraMatrix = glm::mat4(1.0f);
+    double    delta        = 0.0;
+    bool      speedModified  = false;
+    bool      cursorCaptured = false;
+
+    // Mouse tracking
+    double lastMouseX = 0.0;
+    double lastMouseY = 0.0;
+
+    // Input helpers
+    void ProcessMovement(GLFWwindow* window);
+    void ProcessSpeedControl(GLFWwindow* window);
+    void ProcessCursorControl(GLFWwindow* window);
 };

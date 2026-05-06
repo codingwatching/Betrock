@@ -78,7 +78,7 @@ void Mesh::Draw(
         textures[i].Bind();
     }
     glUniform3f(glGetUniformLocation(shader.Id, "cameraPosition"), camera.Position.x, camera.Position.y, camera.Position.z);
-    camera.Matrix(shader, "cameraMatrix");
+    camera.UploadMatrix(shader, "cameraMatrix");
 
     glm::mat4 translation = glm::mat4(1.0f);
     glm::mat4 rotation = glm::mat4(1.0f);

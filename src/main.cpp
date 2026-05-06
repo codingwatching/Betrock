@@ -120,9 +120,9 @@ void buildChunks(Model* blockModel, World* world, bool& smoothLighting, int& sky
             }
         } else {
             building = false;
+            // Only sleep when there's nothing to do, to avoid busy-waiting
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
@@ -150,7 +150,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // Adjust the viewport to the new window size
     glViewport(0, 0, width, height);
     std::cout << "Window resized to: " << width << "x" << height << std::endl;
-    camPointer->updateResolution(width,height);
+    camPointer->UpdateResolution(width,height);
 }
 
 std::string generateFilename() {
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
         // If _getcwd returns NULL, print an error message
         std::cerr << "Error getting current working directory" << std::endl;
     }
-    char worldName[256] = "World1";
+    char worldName[256] = "publicbeta";
     if (argc < 2) {
         std::cout << "No world name provided!" << std::endl;
         //return 1;
@@ -324,6 +324,7 @@ int main(int argc, char *argv[]) {
     camPointer = new Camera(windowWidth, windowHeight, glm::vec3(47.00, 67.62, 225.59), glm::vec3(0.46, -0.09, 0.76)); // Publicbeta Screenshot
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(59.76, 67.41, 251.58), glm::vec3(-0.63, 0.13, -0.61)); // Publicbeta Bg, Fov 50
     //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(0, 90, 0), glm::vec3(0.67, -0.57, -0.13)); // Testing
+    //camPointer = new Camera(windowWidth, windowHeight, glm::vec3(0.0, 400.0, 0.0), glm::vec3(0.1, -0.99, 0.1)); // World1
 
     // Makes it so OpenGL shows the triangles in the right order
     // Enables the depth buffer
@@ -418,15 +419,15 @@ int main(int argc, char *argv[]) {
 
         // ---- INPUTS ----
         if (!io.WantCaptureMouse) {
-            camPointer->Inputs(window);
+            camPointer->ProcessInput(window);
         }
         // World height is 128 blocks, thus our minimum view distance is 128 units,
         // after 9 chunks, the view distance needs to grow to account for the further away chunks
         if (optimalViewDistance) {
             float maxViewDistance = std::max(128.0f,(float(renderDistance)*16.0f));
-            camPointer->updateMatrix(fieldOfView, 0.01f, maxViewDistance);
+            camPointer->UpdateMatrix(fieldOfView, 0.01f, maxViewDistance);
         } else {
-            camPointer->updateMatrix(fieldOfView, 0.01f, 10000);
+            camPointer->UpdateMatrix(fieldOfView, 0.01f, 10000);
         }
         
         ImGui_ImplOpenGL3_NewFrame();
@@ -807,7 +808,7 @@ int main(int argc, char *argv[]) {
         glfwPollEvents();
         fpsTime = (glfwGetTime() - prevTime)*1000;
         prevTime = glfwGetTime();
-        camPointer->setDelta(fpsTime);
+        camPointer->SetDelta(fpsTime);
         previousPosition = camPointer->Position;
         if (world) {
             previousRenderedChunks = world->getNumberOfChunks();
