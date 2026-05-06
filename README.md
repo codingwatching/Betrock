@@ -17,21 +17,21 @@ While Release 1.1 Worlds can be loaded, Blocks that were added after Beta 1.7.3 
 Install the required programs and libraries.
 
 ## Setup
-### Debian / Ubuntu / Linux Mint
+#### Debian / Ubuntu / Linux Mint
 ```bash
 # Getting utilities
 sudo apt install git cmake ninja-build g++
 # Getting libraries
 sudo apt install libgl1-mesa-dev libglfw3-dev libzip-dev libdeflate-dev libglm-dev libstb-dev libfmt-dev
 ```
-### RHEL / Fedora
+#### RHEL / Fedora
 ```bash
 # Getting utilities
 sudo dnf install git cmake ninja-build gcc-c++
 # Getting libraries
 sudo dnf install mesa-libGL-devel glfw-devel libzip-devel libdeflate-devel glm-devel fmt-devel
 ```
-### Arch Linux
+#### Arch Linux
 ```bash
 # Getting utilities
 sudo pacman -S git cmake ninja gcc
@@ -39,7 +39,7 @@ sudo pacman -S git cmake ninja gcc
 sudo pacman -S mesa glfw libzip libdeflate glm stb fmt
 ```
 
-Clone the repository
+### Clone the repository
 ```bash
 # Setting up the repo
 git clone --recurse-submodules https://github.com/OfficialPixelBrush/Betrock.git
