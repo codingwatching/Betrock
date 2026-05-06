@@ -6,6 +6,6 @@ class IndevLoader : public WorldLoader {
         IndevLoader(std::string pPath);
         Chunk* loadChunk(int x, int z, bool nether = false) override;
     private:
-        short width, length, height;
+        short levelWidth, levelLength, levelHeight;
         Block* levelBlocks;
 };
