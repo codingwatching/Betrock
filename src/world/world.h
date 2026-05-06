@@ -5,6 +5,7 @@
 #include "block.h"
 #include <cmath>
 #include "loaders/regionLoader.h"
+#include "loaders/alphaLoader.h"
 #include <unordered_set>
 #include <mutex>
 #include <unordered_map>
@@ -23,7 +24,7 @@ class World {
         std::unordered_map<std::pair<int, int>, Chunk*, pair_hash> chunks;
         std::shared_mutex chunk_mutex;
     public:
-        RegionLoader* rl = nullptr;
+        WorldLoader* wl = nullptr;
         Chunk* cachedChunk = nullptr;
         Block* cachedBlock = nullptr;
         int cachedBlockX;
@@ -34,9 +35,9 @@ class World {
         void LoadWorld(const std::string& pName);
         // Also add a destructor if you haven't already
         ~World() {
-            if (rl != nullptr) {
-                delete rl;
-                rl = nullptr;
+            if (wl != nullptr) {
+                delete wl;
+                wl = nullptr;
             }
         }
 

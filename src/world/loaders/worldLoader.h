@@ -3,6 +3,7 @@
 #include "../global.h"
 #include "../nbt/nbt.h"
 #include "../helper.h"
+#include <cstddef>
 #include <fstream>
 #include "../include/decompress.hpp"
 #include <libdeflate.h>
@@ -13,16 +14,17 @@
 class WorldLoader {
     public:
         WorldLoader(std::string pPath);
-        Chunk* loadChunk(int x, int z, bool nether = false);
+        virtual Chunk* loadChunk(int x, int z, bool nether = false) { return nullptr; };
     private:
         int lastX, lastZ;
         std::ifstream f;
         std::string lastAccessedRegion = "";
         std::string compressionSchemeString(uint cs);
         uint8_t* decompressChunk(uint chunkIndex, size_t length, uint8_t compressionScheme, size_t* nbtLength);
-        Chunk* getChunk(int x, int z);
+        virtual Chunk* getChunk(int x, int z) { return nullptr; };
     protected:
 	    nbt nbtLoader;
         TAG_Compound* chunkLevel = nullptr;
         std::string path = "";
+        Chunk* extractNbtChunk(int chunkX, int chunkZ, uint8_t* nbtData, size_t nbtLength);
 };

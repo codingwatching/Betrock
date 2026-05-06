@@ -11,13 +11,13 @@ void World::LoadWorld(const std::string& pName) {  // Use const reference
     name = pName;  // No need for World:: inside member functions
     
     // Safely delete old RegionLoader
-    if (rl != nullptr) {  // Better null check
-        delete rl;
-        rl = nullptr;     // Good practice to null after delete
+    if (wl != nullptr) {  // Better null check
+        delete wl;
+        wl = nullptr;     // Good practice to null after delete
     }
     
     // Create new RegionLoader
-    rl = new RegionLoader(pName);
+    wl = new RegionLoader(pName);
 }
 /*
 Region* World::findRegion(int x, int z) {
@@ -53,7 +53,7 @@ Chunk* World::findChunk(int x, int z) {
 
 Chunk* World::loadChunk(int x, int z, bool nether) {
     //std::cout << "Load Chunk at " << x/16 << ", " << z/16 << std::endl;
-    Chunk* c = rl->loadChunk(x,z, nether);
+    Chunk* c = wl->loadChunk(x,z, nether);
     addChunk(c);
     return c;
 }
