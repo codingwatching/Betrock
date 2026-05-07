@@ -19,7 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-VERSION="0.4.2"
+VERSION="0.4.3"
 APP_NAME="Betrock"
 OUTPUT="${APP_NAME}-${VERSION}-Linux.AppImage"
 TOOLS_DIR="${SCRIPT_DIR}/tools"
@@ -76,7 +76,7 @@ echo ""
 echo "==> Installing into AppDir ..."
 cmake --install "$BUILD_DIR" --prefix "${APPDIR}/usr"
 mkdir -p "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
-cp "${SCRIPT_DIR}/icon.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/Betrock.png"
+cp "${SCRIPT_DIR}/Betrock.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/Betrock.png"
 mkdir -p "${APPDIR}/usr/share/applications"
 cp "${SCRIPT_DIR}/Betrock.desktop" "${APPDIR}/usr/share/applications/Betrock.desktop"
 
@@ -92,6 +92,12 @@ export OUTPUT="${SCRIPT_DIR}/${OUTPUT}"
 # ARCH must be set for the appimage plugin
 export ARCH="x86_64"
 
+cp "${SCRIPT_DIR}/Betrock.png" "${APPDIR}/Betrock.png"
+
+# linuxdeploy validates the Icon= entry in the .desktop file by looking for a
+# .DirIcon file in the AppDir root. Create it so the icon check passes.
+ln -sf "usr/share/icons/hicolor/256x256/apps/Betrock.png" "${APPDIR}/.DirIcon"
+
 # Run linuxdeploy; the --appimage-extract-and-run flag avoids FUSE issues in
 # containers / build servers.
 "${LINUXDEPLOY}" \
@@ -99,7 +105,7 @@ export ARCH="x86_64"
     --appdir "${APPDIR}" \
     --executable "${APPDIR}/usr/bin/Betrock" \
     --desktop-file "${APPDIR}/usr/share/applications/${APP_NAME}.desktop" \
-    --icon-file "${APPDIR}/usr/share/icons/hicolor/256x256/apps/${APP_NAME}.png" \
+    --icon-file "${SCRIPT_DIR}/Betrock.png" \
     --output appimage
 
 echo ""

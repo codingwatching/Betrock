@@ -125,6 +125,19 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/saves"    DESTINATION share/
 
 install(FILES "${CMAKE_SOURCE_DIR}/Betrock.desktop"
         DESTINATION share/applications)
-install(FILES "${CMAKE_SOURCE_DIR}/icon.png"
+install(FILES "${CMAKE_SOURCE_DIR}/Betrock.png"
         DESTINATION share/icons/hicolor/256x256/apps
         RENAME Betrock.png)
+
+# ── CPack packaging ───────────────────────────────────────────────────────────
+set(CPACK_PACKAGE_NAME "Betrock")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VENDOR "Pixel Brush")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Betrock - Legacy Minecraft World Explorer")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Betrock")
+
+# For TGZ: just pack the install tree
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_STRIP_FILES TRUE)
+
+include(CPack)

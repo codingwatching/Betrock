@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Betrock
-Comment=Minecraft Beta 1.7.3 World Explorer
+Comment=Legacy Minecraft World Explorer
 Exec=Betrock %u
 Icon=Betrock
 Terminal=false
