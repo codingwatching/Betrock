@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16.0)
 cmake_policy(SET CMP0072 NEW)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-project(Betrock VERSION 0.4.3)
+project(BetrockViewer VERSION 0.4.3)
 
 find_package(fmt REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -30,7 +30,7 @@ file(COPY "${CMAKE_SOURCE_DIR}/src/external/"
 configure_file(${CMAKE_SOURCE_DIR}/src/version.h.in ${CMAKE_SOURCE_DIR}/src/version.h)
 
 add_executable(
-    Betrock
+    BetrockViewer
     src/model/chunkBuilder.cpp
     src/model/model.cpp
 
@@ -72,7 +72,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
     set(CMAKE_RANLIB i686-w64-mingw32-ranlib)
     target_link_libraries(
-        Betrock
+        BetrockViewer
         glad
         gdi32
         opengl32
@@ -87,12 +87,12 @@ else()
     option(USE_ASAN "Build with AddressSanitizer" OFF)
     if(USE_ASAN)
         message(STATUS "AddressSanitizer enabled")
-        target_compile_options(Betrock PRIVATE -fsanitize=address -g)
-        target_link_options(Betrock PRIVATE -fsanitize=address)
+        target_compile_options(BetrockViewer PRIVATE -fsanitize=address -g)
+        target_link_options(BetrockViewer PRIVATE -fsanitize=address)
     endif()
 
     target_link_libraries(
-        Betrock
+        BetrockViewer
         glad
         glfw
         OpenGL::GL
@@ -105,36 +105,36 @@ endif()
 # ── Install layout ────────────────────────────────────────────────────────────
 # The install tree mirrors what linuxdeploy expects inside an AppDir:
 #
-#   usr/bin/Betrock
-#   usr/share/Betrock/shaders/
-#   usr/share/Betrock/textures/
-#   usr/share/Betrock/models/
-#   usr/share/Betrock/saves/
-#   usr/share/applications/Betrock.desktop
-#   usr/share/icons/hicolor/256x256/apps/Betrock.png
+#   usr/bin/BetrockViewer
+#   usr/share/BetrockViewer/shaders/
+#   usr/share/BetrockViewer/textures/
+#   usr/share/BetrockViewer/models/
+#   usr/share/BetrockViewer/saves/
+#   usr/share/applications/BetrockViewer.desktop
+#   usr/share/icons/hicolor/256x256/apps/BetrockViewer.png
 #
-# The executable resolves $APPDIR/usr/share/Betrock at runtime when running
+# The executable resolves $APPDIR/usr/share/BetrockViewer at runtime when running
 # as an AppImage (see main.cpp basePath logic).
 
-install(TARGETS Betrock DESTINATION bin)
+install(TARGETS BetrockViewer DESTINATION bin)
 
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/shaders"  DESTINATION share/Betrock)
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/textures" DESTINATION share/Betrock)
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/models"   DESTINATION share/Betrock)
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/saves"    DESTINATION share/Betrock)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/shaders"  DESTINATION share/BetrockViewer)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/textures" DESTINATION share/BetrockViewer)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/models"   DESTINATION share/BetrockViewer)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/external/saves"    DESTINATION share/BetrockViewer)
 
-install(FILES "${CMAKE_SOURCE_DIR}/Betrock.desktop"
+install(FILES "${CMAKE_SOURCE_DIR}/BetrockViewer.desktop"
         DESTINATION share/applications)
-install(FILES "${CMAKE_SOURCE_DIR}/Betrock.png"
+install(FILES "${CMAKE_SOURCE_DIR}/BetrockViewer.png"
         DESTINATION share/icons/hicolor/256x256/apps
-        RENAME Betrock.png)
+        RENAME BetrockViewer.png)
 
 # ── CPack packaging ───────────────────────────────────────────────────────────
-set(CPACK_PACKAGE_NAME "Betrock")
+set(CPACK_PACKAGE_NAME "BetrockViewer")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_VENDOR "Pixel Brush")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Betrock - Legacy Minecraft World Explorer")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "Betrock")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BetrockViewer - Legacy Minecraft World Explorer")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "BetrockViewer")
 
 # For TGZ: just pack the install tree
 set(CPACK_GENERATOR "TGZ")

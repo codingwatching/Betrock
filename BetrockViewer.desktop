@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Betrock
+Name=BetrockViewer
 Comment=Legacy Minecraft World Explorer
-Exec=Betrock %u
-Icon=Betrock
+Exec=BetrockViewer %u
+Icon=BetrockViewer
 Terminal=false
 Categories=Game;

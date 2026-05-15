@@ -9,7 +9,7 @@
 // Set once in main() before any other subsystem initialises.
 // ---------------------------------------------------------------------------
 #include <string>
-namespace Betrock {
+namespace BetrockViewer {
     inline std::string& basePath() {
         static std::string path;
         return path;
